@@ -1,3 +1,10 @@
+import json, string, enchant, nltk, datetime
+import pandas as pd
+import numpy as np
+from collections import Counter
+from bs4 import BeautifulSoup
+from nltk.metrics import edit_distance
+
 class SpellingReplacer(object):
     def __init__(self, dict_name = 'en_GB', max_dist = 2):
         self.spell_dict = enchant.Dict(dict_name)
