@@ -9,7 +9,8 @@ After dropping the null values and turning the UNIX datecode columns into dates 
 
 ![screen shot 2017-05-24 at 5 05 21 pm](https://cloud.githubusercontent.com/assets/24977834/26427659/5d58d4bc-40a3-11e7-81ba-ee4cf8c621de.png)
 
-#Creating and Testing the Model
+# Creating and Testing the Model
+
 Simple prediction accuracy is actually not that revealing of a test-metric. Since only around 10% of our cases are labeled as fraud, we could achieve a 90% score simply by labeling everything as not fraud. So along with our out-of-bag score, we also observe recall, which gives us a better understanding of how often we're correctly labeling the fraudulent events.
 
 We tested logistic regression, Random Forests, gradient boosting and Adaboosts. After testing them all on our cleaned dataset, we found that the highest scoring model was a Random Forest classifier that returned us an out-of-bag score of 94% and a recall of .99. We didn't bother refining after that score.
