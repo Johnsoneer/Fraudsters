@@ -85,6 +85,7 @@ for col in dummy_col:
 dummies = dict(zip(dummy_col, dummy_vals))
 df1.shape
 
+df2_train, df2_test = train_test_split(df1, test_size = 0.2, random_state = 20)
 df2_train_True = df2_train[df2_train['Fraud'] == True]
 ### Balancing traing data
 df2_train_False = df2_train[df2_train['Fraud'] == False]
