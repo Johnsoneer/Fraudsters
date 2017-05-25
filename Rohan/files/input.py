@@ -98,11 +98,11 @@ def pred_send(points, model):
     point, orig = points
     p = model.predict_proba(point.values)[0][1]
     if p > 2.0/3:
-        risk = 'High'
+        risk = 'high'
     elif p > 1.0/3:
-        risk = 'Medium'
+        risk = 'medium'
     else:
-        risk = 'Low'
+        risk = 'low'
     print 'Risk Level: ' + risk + ' with probability of ' + str(p*100) + '%'
     orig['risk_level'] = risk
     orig['fraud_probability'] = p

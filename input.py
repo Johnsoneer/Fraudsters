@@ -10,7 +10,6 @@ from flask import jsonify
 
 def get_json():
     response = requests.get('http://galvanize-case-study-on-fraud.herokuapp.com/data_point')
-    print response
     return json.loads(json.dumps(response.json()))
 
 def model_load():
@@ -98,11 +97,11 @@ def pred_send(points, model):
     point, orig = points
     p = model.predict_proba(point.values)[0][1]
     if p > 2.0/3:
-        risk = 'High'
+        risk = 'high'
     elif p > 1.0/3:
-        risk = 'Medium'
+        risk = 'medium'
     else:
-        risk = 'Low'
+        risk = 'low'
     print 'Risk Level: ' + risk + ' with probability of ' + str(p*100) + '%'
     orig['risk_level'] = risk
     orig['fraud_probability'] = p
@@ -147,17 +146,22 @@ if __name__ == '__main__':
             i = 0
             while i < its:
                 j = get_json()
-                print type(j)
                 point, orig = data_cleanJ(j, dummy_dict)
-                pred = pred_send((point,orig), model)
+                try:
+                    pred = pred_send((point,orig), model)
+                    to_database(pred)
+                except Exception:
+                    pass
                 i+=1
-                to_database(pred)
-                sleep(5)
+                sleep(10)
         else:
             while True:
                 j = get_json()
-                point, orig = data_clean(j, dummy_dict)
-                pred_send((point,orig), model)
-                i+=1
-                sleep(5)
+                point, orig = data_cleanJ(j, dummy_dict)
+                try:
+                    pred = pred_send((point,orig), model)
+                    to_database(pred)
+                except Exception:
+                    pass
+                sleep(10)
         # pass
