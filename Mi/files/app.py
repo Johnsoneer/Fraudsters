@@ -23,10 +23,16 @@ app = Flask(__name__)
 #                                          autoflush=False,
 #                                          bind=engine))
 
-conn = psycopg2.connect('postgresql://William:tiger@10.8.81.53:5432/fraudsters')
+# conn = psycopg2.connect('postgresql://William:tiger@10.8.81.53:5432/fraudsters')
+# cur = conn.cursor()
+# cur.execute("SELECT org_name,risk_level,fraud_probability FROM dataframe;")
+# query = cur.fetchone()
+# df = pd.DataFrame(list(query)).T
+
+conn = psycopg2.connect(‘postgresql://William:tiger@10.8.81.53:5432/fraudsters’)
 cur = conn.cursor()
-cur.execute("SELECT org_name,risk_level,fraud_probability FROM dataframe;")
-query = cur.fetchone()
+cur.execute(“SELECT org_name,risk_level,fraud_probability FROM dataframe WHERE risk_level = ‘high’ GROUP BY org_name,risk_level,fraud_probability;“)
+query = cur.fetchall()
 df = pd.DataFrame(list(query)).T
 
 # Set homepage to index.html
