@@ -1,0 +1,46 @@
+
+<!doctype html>
+
+<html lang="en">
+<head>
+
+  <meta charset="utf-8">
+
+  <title>DSI Fraud Detector</title>
+
+</head>
+
+<body>
+
+  <h1>The Most Recent Query:</h1>
+
+  <span style="color: blue; font-weight: bold;">Your Article</span>
+  <p>{{ article }}</p>
+  <span style="color: blue; font-weight: bold;">Your Predicted Class</span>
+  <p>{{ predicted }}</p>
+
+  {% for row_index in range(x['date']|count) %}
+  <tr>
+    <td>{{ x['date'][row_index]|tojson|safe }}</td>
+    <td>{{ x['users'][row_index] }}</td>
+  </tr>
+  {% endfor %}
+
+
+  <!-- <table>
+    <thead>
+      <th>x</th>
+      <th>y</th>
+    </thead>
+    <tbody>
+      {% for x, y in data %}
+        <tr>
+          <td>{{ x }}</td>
+          <td>{{ y }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table> -->
+
+</body>
+</html>
