@@ -79,9 +79,9 @@ dummy_col = ['country', 'currency', 'listed', 'payout_type', 'venue_country', 'v
 dummy_vals = []
 ### Create dummy columns
 for col in dummy_col:
-    df1 = pd.concat([df1, pd.get_dummies(df[col])], axis=1)
+    df1 = pd.concat([df1, pd.get_dummies(df[col], prefix = col)], axis=1)
     dummy_vals.append(list(df1[col].unique()))
-    del df1[col]
+    df1.pop(col)
 dummies = dict(zip(dummy_col, dummy_vals))
 df1.shape
 
