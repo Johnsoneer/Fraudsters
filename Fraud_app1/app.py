@@ -4,6 +4,8 @@ import sys, os, time
 import requests
 import json
 import pandas as pd
+from sqlalchemy import create_engine, MetaData
+import psycopg2
 
 APP_NAME = 'Fraud Detection API'
 APP_DESCRIPTION = 'Determine the likelyhood of fraud'
@@ -12,8 +14,20 @@ APP_DESCRIPTION = 'Determine the likelyhood of fraud'
 #table = dataframe
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/fraudsters'
-db = SQLAlchemy(app)
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://10.8.81.53/fraudsters'
+# db = SQLAlchemy(app)
+
+# engine = create_engine('postgresql://10.8.81.53/fraudsters', convert_unicode=True)
+# x = MetaData()
+# db_session = scoped_session(sessionmaker(autocommit=False,
+#                                          autoflush=False,
+#                                          bind=engine))
+
+conn = psycopg2.connect('postgresql://William:tiger@10.8.81.53:5432/fraudsters')
+cur = conn.cursor()
+cur.execute("SELECT org_name,risk_level,fraud_probability FROM dataframe;")
+query = cur.fetchone()
+df = pd.DataFrame(list(query)).T
 
 # Set homepage to index.html
 #@app.route('/', methods = ['GET','POST'])
@@ -25,12 +39,8 @@ def index():
 
 @app.route('/predict', methods = ['GET', 'POST'])
 def predict():
-    x = {'date':[u'2012-06-28', u'2012-06-29', u'2012-06-30'], 'users': [405, 368, 119]}
 
-
-
-
-    # x = 1 #dataframe.query.first(risk_level)
+    x = df #dataframe.query.first(risk_level)
     # y = 2 #dataframe.query.first(fraud_probability)
     return render_template('predict.html', x=x)
 
