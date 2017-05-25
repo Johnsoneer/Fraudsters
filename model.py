@@ -3,22 +3,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime as dt
 from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.tree import export_graphviz
-from sklearn.datasets import make_classification
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, precision_score, recall_score
 import cPickle as pickle
-import pprint
-from itertools import cycle
-
-from sklearn import svm, datasets
 from sklearn.metrics import roc_curve, auc
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import label_binarize
-from sklearn.multiclass import OneVsRestClassifier
-from scipy import interp
+
+
+#Function to balance classes
+def balancer(df, label, margin = 0.4, size = 500):
+    yes = df[df[label] == 1]
+    no = df[df[label] == 0]
+    return yes.sample(int(size * margin),axis =0).append(no.sample(size - int(size * margin),axis =0))
 
 df = pd.read_json('data.json')
 
@@ -34,28 +32,20 @@ df = df[np.isfinite(df['sale_duration'])]
 df = df.dropna(subset=['country'])
 df = df.dropna(subset=['delivery_method'])
 
-#Selecting just the dates
-df_copy = df.copy()
-
+#Converting Date columns to datetime objects
 datecols = ['approx_payout_date', 'event_created', 'event_end', 'event_start', 'event_published', 'user_created']
-
 convert = lambda x: dt.datetime.fromtimestamp(x)
 for i in datecols:
-    df_copy[i]=df_copy[i].apply(pd.to_numeric)
-    df_copy[i]=df_copy[i].apply(convert)
+    df[i]=dfi].apply(pd.to_numeric)
+    df[i]=df[i].apply(convert)
 
+#Removing time, focus on just the date/day
+df['created_date'] = df['event_created'].dt.date
+df['started_date'] = df['event_start'].dt.date
+df['approx_payout_day'] = df['approx_payout_date'].dt.date
 
-df_copy['created_date'] = df_copy['event_created'].dt.date
-df_copy['started_date'] = df_copy['event_start'].dt.date
-# df['published_date'] = df['event_published'].dt.date
-df_copy['approx_payout_day'] = df_copy['approx_payout_date'].dt.date
-#Creating new column where TRUE if all dates are equal
-date_df = df_copy[['Fraud','created_date','started_date']]
-date_df['all_equal'] = ((date_df['created_date']==date_df['started_date']))
-#(date_df[‘created_date’]==date_df[‘published_date’]) &
-# created_started = date_df[date_df['all_equal']==True]
-# sum(created_started['Fraud'])/float(len(created_started))
-df['all_equal'] = date_df['all_equal']
+#Creating new column, True when created_date and started_date are the same (more likely to be fraud)
+df['all_equal'] = df['created_date'] == df['started_date']
 df1 = df.copy()
 
 ## Keep these column in training data as well as lable columne ['Fraud']
@@ -83,33 +73,27 @@ for col in dummy_col:
     dummy_vals.append(list(df1[col].unique()))
     df1.pop(col)
 dummies = dict(zip(dummy_col, dummy_vals))
-df1.shape
+# df1.shape
 
-df2_train, df2_test = train_test_split(df1, test_size = 0.2, random_state = 20)
-df2_train_True = df2_train[df2_train['Fraud'] == True]
-### Balancing traing data
-df2_train_False = df2_train[df2_train['Fraud'] == False]
-df2_train_False_remove, df2_train_False_keep = train_test_split(df1, test_size = 0.3, random_state = 20)
-df2_train_bal = pd.concat((df2_train_True, df2_train_False_keep))
 
+### Classes are imbalanced (90 - 10). Rebalancing the classes to get better model.
+df2_bal = balancer(df1, 'Fraud', 0.4, 1000)
 print "After training data balance"
-print 'Number of True:', len(df2_train_bal[df2_train_bal['Fraud'] == True])
-print 'Number of False:', len(df2_train_bal[df2_train_bal['Fraud'] == False])
-print 'Percentage of False: ', round(len(df2_train_bal[df2_train_bal['Fraud'] == False]) / \
-                                                float(len(df2_train_bal)), 4) * 100, '%'
+print 'Number of True:', df2_bal['Fraud'].sum()
+print 'Number of False:', 1000 - df2_bal['Fraud'].sum()
+print 'Percentage of False: ', 1 - df2_bal['Fraud'].mean()
 
-y_train = df2_train_bal.pop('Fraud')
-x_train = df2_train_bal.values
-y_test  = df2_test.pop('Fraud')
-x_test  = df2_test.values
-y_train = y_train.values.reshape(-1,1)
-y_test = y_test.values.reshape(-1,1)
+#Creating train/test split
+y = df2_bal.pop('Fraud').values
+X = df2_bal.values
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.33)
 
+#Start training a model!
 # Build a forest and compute the feature importances
 forest = ExtraTreesClassifier(n_estimators=250,
                               random_state=0)
 
-forest.fit(x_train, y_train)
+forest.fit(X_train, y_train)
 importances = forest.feature_importances_
 std = np.std([tree.feature_importances_ for tree in forest.estimators_],
              axis=0)
@@ -120,7 +104,7 @@ feature_list = df2_train.columns.values
 # Print the feature ranking
 print("Feature ranking:")
 
-for f in range(x_train.shape[1]):
+for f in range(20):
     print("%d. feature %d (%f): %s" % (f + 1, indices[f], importances[indices[f]], \
                                        feature_list[f]))
 
@@ -138,15 +122,17 @@ ax.set_ylabel("Importance", fontsize=18)
 ax.set_xticklabels((feature_list), rotation=45, fontsize=14, ha = 'right')
 plt.show()
 
+# This time, RandomForestClassifier
 # Build the RandomForestClassifier again setting the out of bag parameter to be true
 rf = RandomForestClassifier(n_estimators=30, oob_score=True)
-rf.fit(x_train, y_train)
-print "RF accuracy score:", rf.score(x_test, y_test)
+rf.fit(X_train, y_train)
+print "RF accuracy score:", rf.score(X_test, y_test)
 print " out of bag score:", rf.oob_score_
 
-y_predict = rf.predict(x_test)
+y_predict = rf.predict(X_test)
 print precision_score(y_test, y_predict)
 print recall_score(y_test, y_predict)
 print confusion_matrix(y_test, y_predict)
 
+# Store the model, as well as the dummy variables to work off
 pickle.dump((rf, dummies), open('model.p', 'wb'))
