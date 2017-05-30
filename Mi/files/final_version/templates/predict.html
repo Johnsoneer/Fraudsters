@@ -1,0 +1,49 @@
+
+<!doctype html>
+
+<html lang="en">
+<head>
+
+  <meta charset="utf-8">
+
+  <title>DSI Fraud Detector</title>
+
+</head>
+
+<body>
+
+  <h1>The Most Recent Query:</h1>
+
+
+  <span style="color: blue; font-weight: bold;">Your Predicted</span>
+  <p>{{ predicted }}</p>
+
+<!--
+  <table>
+    {{ x }}
+  </table> -->
+  <span style=“color: blue; font-weight: bold;“>Your Predictions</span>
+    <p>{{ predicted }}</p>
+
+
+  <table border = “1”>
+    <tr>
+      <th>Organization Name</th>
+      <th>Risk Level</th>
+      <th>Fraud Probability</th>
+    </tr>
+    <tr>
+      {% for row_index in range(y) %}
+      <tr>
+        <td>{{ x[row_index][0] }}</td>
+        <td>{{ x[row_index][1] }}</td>
+        <td>{{ x[row_index][2] }}</td>
+      </tr>
+  {% endfor %}
+  </table>
+
+
+
+
+</body>
+</html>
