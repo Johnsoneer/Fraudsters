@@ -89,7 +89,7 @@ def data_cleanJ(readin, dummies):
     for col in dummy_dict:
         values = dummy_dict[col]
         for value in values:
-            point[(value + '_' + col)] = int(point[col] == value)
+            point[(col + '_' + value)] = int(point[col] == value)
         point.pop(col)
     return (point, orig)
 
